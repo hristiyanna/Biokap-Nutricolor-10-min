@@ -743,7 +743,9 @@ async function submitOrder() {
     const data = await res.json();
 
     if (data.success) {
-      // Facebook Pixel Purchase event
+      const txId = Date.now().toString();
+
+      // 1. Директно fbq() — backup ако GTM не го изпраща
       if (typeof fbq !== 'undefined') {
         fbq('track', 'Purchase', {
           value: 13.50,
@@ -755,26 +757,33 @@ async function submitOrder() {
         });
       }
 
-      // Google Ads conversion
+      // 2. GTM dataLayer — purchase1 event + Facebook pixel данни вътре
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({ ecommerce: null }); // clear previous
+      window.dataLayer.push({
+        event: 'purchase1',
+        facebook: {
+          event_name: 'Purchase',
+          value: 13.50,
+          currency: 'EUR',
+          content_ids: ['nutricolor-rapid'],
+          content_type: 'product'
+        },
+        ecommerce: {
+          transaction_id: txId,
+          value: 13.50,
+          currency: 'EUR',
+          items: [{ item_name: 'BioKap Nutricolor Delicato Rapid', item_id: 'nutricolor-rapid', price: 13.50, quantity: 1 }]
+        }
+      });
+
+      // 3. Google Ads conversion директно
       if (typeof gtag !== 'undefined') {
         gtag('event', 'conversion', {
           'send_to': 'AW-17746209020',
           'value': 13.50,
           'currency': 'EUR',
-          'transaction_id': Date.now().toString()
-        });
-      }
-
-      // GTM dataLayer push
-      if (typeof dataLayer !== 'undefined') {
-        dataLayer.push({
-          event: 'purchase1',
-          ecommerce: {
-            transaction_id: Date.now().toString(),
-            value: 13.50,
-            currency: 'EUR',
-            items: [{ item_name: 'BioKap Nutricolor Delicato Rapid', item_id: 'nutricolor-rapid', price: 13.50, quantity: 1 }]
-          }
+          'transaction_id': txId
         });
       }
 
