@@ -719,7 +719,7 @@ async function submitOrder() {
   const color = document.getElementById('colorName').textContent;
   if (!phone) { alert('Моля, въведете телефонен номер.'); return; }
 
-  const btn = document.querySelector('.btn-order');
+  const btn = document.querySelector('#orderFormWrap .btn-order');
   btn.textContent = 'Изпращане...';
   btn.disabled = true;
 
@@ -776,13 +776,17 @@ async function submitOrder() {
       }
 
       // Show success message (GTM element visibility fires on this)
-      document.getElementById('orderFormWrap').style.display = 'none';
+      const wrap = document.getElementById('orderFormWrap');
+      if (wrap) wrap.style.display = 'none';
       const s = document.getElementById('orderSuccess');
-      s.style.height = 'auto';
-      s.style.padding = '20px 0';
-      s.style.opacity = '1';
-      document.getElementById('successMsg').textContent =
-        `Поръчка за "${color}" е приета! Ще се свържем с вас на ${phone}.`;
+      if (s) {
+        s.style.height = 'auto';
+        s.style.padding = '20px 0';
+        s.style.opacity = '1';
+        s.style.overflow = 'visible';
+      }
+      const msg = document.getElementById('successMsg');
+      if (msg) msg.textContent = `Поръчка за "${color}" е приета! Ще се свържем с вас на ${phone}.`;
 
     } else {
       alert('Грешка при изпращане. Обадете се на 0887 010 100.');
