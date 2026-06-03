@@ -723,9 +723,43 @@ async function submitOrder() {
   if (!phone) { alert('Моля, въведете телефонен номер.'); return; }
 
   const btn = document.querySelector('#orderFormWrap .btn-order');
-  btn.textContent = 'Изпращане...';
-  btn.disabled = true;
+  if (btn) { btn.textContent = 'Изпращане...'; btn.disabled = true; }
 
+  const txId = Date.now().toString();
+
+  // TRACKING — изпраща се ВЕДНАГА, преди всичко друго
+  try {
+    if (typeof fbq !== 'undefined') {
+      fbq('track', 'Purchase', {
+        value: 13.50, currency: 'EUR',
+        content_name: 'BioKap Nutricolor Delicato Rapid',
+        content_ids: ['nutricolor-rapid'],
+        content_type: 'product', num_items: 1
+      });
+    }
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({ ecommerce: null });
+    window.dataLayer.push({
+      event: 'purchase1',
+      facebook: { event_name: 'Purchase', value: 13.50, currency: 'EUR', content_ids: ['nutricolor-rapid'], content_type: 'product' },
+      ecommerce: { transaction_id: txId, value: 13.50, currency: 'EUR', items: [{ item_name: 'BioKap Nutricolor Delicato Rapid', item_id: 'nutricolor-rapid', price: 13.50, quantity: 1 }] }
+    });
+    if (typeof gtag !== 'undefined') {
+      gtag('event', 'conversion', { 'send_to': 'AW-17746209020', 'value': 13.50, 'currency': 'EUR', 'transaction_id': txId });
+    }
+  } catch(trackErr) { console.warn('Tracking error:', trackErr); }
+
+  // ПОКАЗВАНЕ НА SUCCESS — веднага, без да чакаме имейла
+  const wrap = document.getElementById('orderFormWrap');
+  if (wrap) wrap.style.display = 'none';
+  const s = document.getElementById('orderSuccess');
+  if (s) s.style.display = 'block';
+  const msg = document.getElementById('successMsg');
+  if (msg) msg.textContent = 'Поръчка за "' + color + '" е приета! Ще се свържем с вас на ' + phone + '.';
+  const gtmP = document.getElementById('gtmVisibilityTrigger');
+  if (gtmP) { gtmP.style.display = 'block'; gtmP.style.opacity = '1'; }
+
+  // WEB3FORMS — изпраща се на заден план, грешка не пречи на потребителя
   try {
     const formData = new FormData();
     formData.append('access_key', '7e08a45b-771b-4f5c-a7b8-5eb9ed79f235');
@@ -735,79 +769,9 @@ async function submitOrder() {
     formData.append('color', color);
     formData.append('product', 'BioKap Nutricolor Delicato Rapid 135ml');
     formData.append('price', '13.50 EUR');
-
-    const res = await fetch('https://api.web3forms.com/submit', {
-      method: 'POST',
-      body: formData
-    });
-    const data = await res.json();
-
-    if (data.success) {
-      const txId = Date.now().toString();
-
-      // 1. Директно fbq() — backup ако GTM не го изпраща
-      if (typeof fbq !== 'undefined') {
-        fbq('track', 'Purchase', {
-          value: 13.50,
-          currency: 'EUR',
-          content_name: 'BioKap Nutricolor Delicato Rapid',
-          content_ids: ['nutricolor-rapid'],
-          content_type: 'product',
-          num_items: 1
-        });
-      }
-
-      // 2. GTM dataLayer — purchase1 event + Facebook pixel данни вътре
-      window.dataLayer = window.dataLayer || [];
-      window.dataLayer.push({ ecommerce: null }); // clear previous
-      window.dataLayer.push({
-        event: 'purchase1',
-        facebook: {
-          event_name: 'Purchase',
-          value: 13.50,
-          currency: 'EUR',
-          content_ids: ['nutricolor-rapid'],
-          content_type: 'product'
-        },
-        ecommerce: {
-          transaction_id: txId,
-          value: 13.50,
-          currency: 'EUR',
-          items: [{ item_name: 'BioKap Nutricolor Delicato Rapid', item_id: 'nutricolor-rapid', price: 13.50, quantity: 1 }]
-        }
-      });
-
-      // 3. Google Ads conversion директно
-      if (typeof gtag !== 'undefined') {
-        gtag('event', 'conversion', {
-          'send_to': 'AW-17746209020',
-          'value': 13.50,
-          'currency': 'EUR',
-          'transaction_id': txId
-        });
-      }
-
-      // Show success message (GTM element visibility fires on this)
-      const wrap = document.getElementById('orderFormWrap');
-      if (wrap) wrap.style.display = 'none';
-      const s = document.getElementById('orderSuccess');
-      if (s) s.style.display = 'block';
-      const msg = document.getElementById('successMsg');
-      if (msg) msg.textContent = `Поръчка за "${color}" е приета! Ще се свържем с вас на ${phone}.`;
-      // GTM element visibility trigger — add visible p to DOM
-      const gtmP = document.getElementById('gtmVisibilityTrigger');
-      if (gtmP) { gtmP.style.display = 'block'; gtmP.style.opacity = '1'; }
-
-    } else {
-      alert('Грешка при изпращане. Обадете се на 0887 010 100.');
-      btn.textContent = 'Бърза поръчка — 13.50 € →';
-      btn.disabled = false;
-    }
-  } catch(e) {
-    alert('Грешка при изпращане. Обадете се на 0887 010 100.');
-    btn.textContent = 'Бърза поръчка — 13.50 € →';
-    btn.disabled = false;
-  }
+    formData.append('transaction_id', txId);
+    await fetch('https://api.web3forms.com/submit', { method: 'POST', body: formData });
+  } catch(e) { console.warn('Web3forms error:', e); }
 }
 
 // Scroll animations
