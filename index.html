@@ -385,16 +385,16 @@ footer img{height:28px;width:auto}
       </div>
     </div>
 
-    <!-- SUCCESS MESSAGE — GTM element visibility trigger on this p -->
-    <div id="fast_order_panel">
-      <div><div><div>
-        <div class="order-success" id="orderSuccess">
+    <!-- SUCCESS MESSAGE — GTM element visibility trigger: #fast_order_panel > div > div > div > p -->
+    <div>
+      <div>
+        <div class="order-success" id="orderSuccess" style="height:0;overflow:hidden;opacity:0;text-align:center;padding:0;transition:opacity 0.3s;">
           <div class="success-icon">✅</div>
           <h3>Поръчката е приета!</h3>
           <p id="successMsg">Ще се свържем с вас на посочения телефон за потвърждение.</p>
           <p class="success-detail">Очаквайте обаждане в рамките на работния ден.</p>
         </div>
-      </div></div></div>
+      </div>
     </div>
   </div>
 </div>
@@ -765,7 +765,7 @@ async function submitOrder() {
       // GTM dataLayer push
       if (typeof dataLayer !== 'undefined') {
         dataLayer.push({
-          event: 'purchase',
+          event: 'purchase1',
           ecommerce: {
             transaction_id: Date.now().toString(),
             value: 13.50,
@@ -777,7 +777,10 @@ async function submitOrder() {
 
       // Show success message (GTM element visibility fires on this)
       document.getElementById('orderFormWrap').style.display = 'none';
-      document.getElementById('orderSuccess').style.display = 'block';
+      const s = document.getElementById('orderSuccess');
+      s.style.height = 'auto';
+      s.style.padding = '20px 0';
+      s.style.opacity = '1';
       document.getElementById('successMsg').textContent =
         `Поръчка за "${color}" е приета! Ще се свържем с вас на ${phone}.`;
 
