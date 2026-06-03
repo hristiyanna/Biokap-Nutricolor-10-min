@@ -388,7 +388,10 @@ footer img{height:28px;width:auto}
     <!-- SUCCESS MESSAGE — GTM element visibility trigger: #fast_order_panel > div > div > div > p -->
     <div>
       <div>
-        <div class="order-success" id="orderSuccess" style="height:0;overflow:hidden;opacity:0;text-align:center;padding:0;transition:opacity 0.3s;">
+        <div>
+          <p id="gtmVisibilityTrigger" style="display:none;opacity:0;font-size:1px;line-height:0;height:1px;color:transparent;">order_complete</p>
+        </div>
+        <div class="order-success" id="orderSuccess" style="display:none;text-align:center;padding:20px 0;">
           <div class="success-icon">✅</div>
           <h3>Поръчката е приета!</h3>
           <p id="successMsg">Ще се свържем с вас на посочения телефон за потвърждение.</p>
@@ -779,14 +782,12 @@ async function submitOrder() {
       const wrap = document.getElementById('orderFormWrap');
       if (wrap) wrap.style.display = 'none';
       const s = document.getElementById('orderSuccess');
-      if (s) {
-        s.style.height = 'auto';
-        s.style.padding = '20px 0';
-        s.style.opacity = '1';
-        s.style.overflow = 'visible';
-      }
+      if (s) s.style.display = 'block';
       const msg = document.getElementById('successMsg');
       if (msg) msg.textContent = `Поръчка за "${color}" е приета! Ще се свържем с вас на ${phone}.`;
+      // GTM element visibility trigger — add visible p to DOM
+      const gtmP = document.getElementById('gtmVisibilityTrigger');
+      if (gtmP) { gtmP.style.display = 'block'; gtmP.style.opacity = '1'; }
 
     } else {
       alert('Грешка при изпращане. Обадете се на 0887 010 100.');
