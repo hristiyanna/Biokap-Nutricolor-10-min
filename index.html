@@ -373,7 +373,7 @@ footer img{height:28px;width:auto}
     <!-- FORM -->
     <div id="orderFormWrap">
       <div class="order-form">
-        <input type="tel" class="form-input" placeholder="Телефон за поръчка *" id="fphone" autocomplete="tel">
+        <input type="tel" class="form-input" placeholder="Телефон за поръчка *" id="fphone" autocomplete="tel" minlength="10" pattern="[\d\s\+\-\(\)]{10,}">
       </div>
       <button class="btn-order" onclick="submitOrder()">
         Бърза поръчка — 13.50 € <span class="btn-arrow">→</span>
@@ -720,7 +720,7 @@ function toggleFaq(el) {
 async function submitOrder() {
   const phone = document.getElementById('fphone').value.trim();
   const color = document.getElementById('colorName').textContent;
-  if (!phone) { alert('Моля, въведете телефонен номер.'); return; }
+  if (!phone || phone.replace(/\D/g, '').length < 10) { alert('Моля, въведете валиден телефонен номер (минимум 10 цифри).'); return; }
 
   const btn = document.querySelector('#orderFormWrap .btn-order');
   if (btn) { btn.textContent = 'Изпращане...'; btn.disabled = true; }
