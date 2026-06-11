@@ -374,6 +374,7 @@ footer img{height:28px;width:auto}
     <div id="orderFormWrap">
       <div class="order-form">
         <input type="tel" class="form-input" placeholder="Телефон за поръчка *" id="fphone" autocomplete="tel" minlength="10" pattern="[\d\s\+\-\(\)]{10,}">
+        <input type="email" class="form-input" placeholder="Имейл адрес *" id="femail" autocomplete="email">
       </div>
       <button class="btn-order" onclick="submitOrder()">
         Бърза поръчка — 13.50 € <span class="btn-arrow">→</span>
@@ -720,7 +721,9 @@ function toggleFaq(el) {
 async function submitOrder() {
   const phone = document.getElementById('fphone').value.trim();
   const color = document.getElementById('colorName').textContent;
+  const email = document.getElementById('femail').value.trim();
   if (!phone || phone.replace(/\D/g, '').length < 10) { alert('Моля, въведете валиден телефонен номер (минимум 10 цифри).'); return; }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { alert('Моля, въведете валиден имейл адрес.'); return; }
 
   const btn = document.querySelector('#orderFormWrap .btn-order');
   if (btn) { btn.textContent = 'Изпращане...'; btn.disabled = true; }
@@ -766,6 +769,7 @@ async function submitOrder() {
     formData.append('subject', 'Нова поръчка — Nutricolor Delicato Rapid');
     formData.append('from_name', 'Amalife Landing Page');
     formData.append('phone', phone);
+    formData.append('email', email);
     formData.append('color', color);
     formData.append('product', 'BioKap Nutricolor Delicato Rapid 135ml');
     formData.append('price', '13.50 EUR');
