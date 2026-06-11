@@ -375,6 +375,13 @@ footer img{height:28px;width:auto}
       <div class="order-form">
         <input type="tel" class="form-input" placeholder="Телефон за поръчка *" id="fphone" autocomplete="tel" minlength="10" pattern="[\d\s\+\-\(\)]{10,}">
         <input type="email" class="form-input" placeholder="Имейл адрес *" id="femail" autocomplete="email">
+        <select class="form-input" id="fqty" onchange="updatePrice()">
+          <option value="1">1 брой — 13.50 €</option>
+          <option value="2">2 броя — 27.00 €</option>
+          <option value="3">3 броя — 40.50 €</option>
+          <option value="4">4 броя — 54.00 €</option>
+          <option value="5">5 броя — 67.50 €</option>
+        </select>
       </div>
       <button class="btn-order" onclick="submitOrder()">
         Бърза поръчка — 13.50 € <span class="btn-arrow">→</span>
@@ -701,6 +708,13 @@ function setMain(thumb) {
 }
 
 // Color picker
+function updatePrice() {
+  const qty = parseInt(document.getElementById('fqty').value);
+  const price = (qty * 13.50).toFixed(2);
+  const btn = document.querySelector('#orderFormWrap .btn-order');
+  if (btn) btn.innerHTML = 'Бърза поръчка — ' + price + ' € <span class="btn-arrow">→</span>';
+}
+
 function pickColor(el) {
   document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
   el.classList.add('active');
@@ -722,6 +736,8 @@ async function submitOrder() {
   const phone = document.getElementById('fphone').value.trim();
   const color = document.getElementById('colorName').textContent;
   const email = document.getElementById('femail').value.trim();
+  const qty = parseInt(document.getElementById('fqty').value) || 1;
+  const totalPrice = parseFloat((qty * 13.50).toFixed(2));
   if (!phone || phone.replace(/\D/g, '').length < 10) { alert('Моля, въведете валиден телефонен номер (минимум 10 цифри).'); return; }
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { alert('Моля, въведете валиден имейл адрес.'); return; }
 
@@ -734,7 +750,7 @@ async function submitOrder() {
   try {
     if (typeof fbq !== 'undefined') {
       fbq('track', 'Purchase', {
-        value: 13.50, currency: 'EUR',
+        value: totalPrice, currency: 'EUR',
         content_name: 'BioKap Nutricolor Delicato Rapid',
         content_ids: ['nutricolor-rapid'],
         content_type: 'product', num_items: 1
@@ -745,10 +761,10 @@ async function submitOrder() {
     window.dataLayer.push({
       event: 'purchase1',
       facebook: { event_name: 'Purchase', value: 13.50, currency: 'EUR', content_ids: ['nutricolor-rapid'], content_type: 'product' },
-      ecommerce: { transaction_id: txId, value: 13.50, currency: 'EUR', items: [{ item_name: 'BioKap Nutricolor Delicato Rapid', item_id: 'nutricolor-rapid', price: 13.50, quantity: 1 }] }
+      ecommerce: { transaction_id: txId, value: 13.50, currency: 'EUR', items: [{ item_name: 'BioKap Nutricolor Delicato Rapid', item_id: 'nutricolor-rapid', price: 13.50, quantity: qty }] }
     });
     if (typeof gtag !== 'undefined') {
-      gtag('event', 'conversion', { 'send_to': 'AW-17746209020', 'value': 13.50, 'currency': 'EUR', 'transaction_id': txId });
+      gtag('event', 'conversion', { 'send_to': 'AW-17746209020', 'value': totalPrice, 'currency': 'EUR', 'transaction_id': txId });
     }
   } catch(trackErr) { console.warn('Tracking error:', trackErr); }
 
@@ -758,7 +774,7 @@ async function submitOrder() {
   const s = document.getElementById('orderSuccess');
   if (s) s.style.display = 'block';
   const msg = document.getElementById('successMsg');
-  if (msg) msg.textContent = 'Поръчка за "' + color + '" е приета! Ще се свържем с вас на ' + phone + '.';
+  if (msg) msg.textContent = 'Поръчка за ' + qty + ' бр. "' + color + '" е приета! Общо: ' + totalPrice + ' €. Ще се свържем с вас на ' + phone + '.';
   const gtmP = document.getElementById('gtmVisibilityTrigger');
   if (gtmP) { gtmP.style.display = 'block'; gtmP.style.opacity = '1'; }
 
@@ -770,6 +786,8 @@ async function submitOrder() {
     formData.append('from_name', 'Amalife Landing Page');
     formData.append('phone', phone);
     formData.append('email', email);
+    formData.append('quantity', qty);
+    formData.append('total_price', totalPrice + ' EUR');
     formData.append('color', color);
     formData.append('product', 'BioKap Nutricolor Delicato Rapid 135ml');
     formData.append('price', '13.50 EUR');
